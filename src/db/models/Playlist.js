@@ -1,65 +1,45 @@
 const knex = require('../knex');
 
-const fetchSong = async (songId) => {
-    const url = `https://genius-song-lyrics1.p.rapidapi.com/song/details/?id=${songId}`;
-    const options = {
-        method: 'GET',
-        headers: {
-            'X-RapidAPI-Key': '5e83074ae9msh01a992d70f3dac5p1d8bc3jsn11454281692e',
-            'X-RapidAPI-Host': 'genius-song-lyrics1.p.rapidapi.com'
-        }
-    };
-
-    try {
-        const response = await fetch(url, options);
-        const result = await response.text();
-        console.log(result);
-    } catch (error) {
-        console.error(error);
-    }
-}
-
 class Playlist {
-    static async add(userId, songId) {
+
+    static async addSong(userId, songId) {
         const query = `INSERT INTO playlist (user_id, song_id)
           VALUES (?, ?) RETURNING *`;
         const { rows } = await knex.raw(query, [userId, songId]);
         return rows;
     }
-    static async list() {
-        const query = 'SELECT * FROM playlist';
-        const { rows } = await knex.raw(query);
-        // use the constructor to hide each user's passwordHash
-        return null;
+    static async listSongIds(userId) {
+        const query = 'SELECT song_id FROM playlist WHERE user_id = ? RETURNING *';
+        const { rows } = await knex.raw(query, [userId]);
+        return rows;
     }
 
-    static async find(userId) {
-        const query = 'SELECT song_id FROM playlist WHERE user_id = ?';
-        const args = [userId];
+    static async findSong(id) {
+        const query = 'SELECT song_id FROM playlist WHERE id = ?';
+        const args = [id];
         const { rows } = await knex.raw(query, args);
-        const user = rows[0];
-        return null;
+        //const user = rows[0];
+        return rows;
     }
 
-    static async findByUsername(username) {
-        const query = 'SELECT * FROM users WHERE username = ?';
-        const args = [username];
+    static async deleteSong(id) {
+        const query = 'DELETE FROM playlist WHERE id = ?';
+        const args = [id];
         const { rows } = await knex.raw(query, args);
-        const user = rows[0];
-        return user ? new User(user) : null;
+        return null;
     }
 
     static async deleteAll() {
-        return knex.raw('TRUNCATE users;');
+        return knex.raw('TRUNCATE playlist;');
     }
 
-    update = async (username) => { // dynamic queries are easier if you add more properties
-        const rows = await knex('users')
-            .where({ id: this.id })
-            .update({ username })
-            .returning('*');
+    // update = async (username) => { // dynamic queries are easier if you add more properties
+    //     const rows = await knex('users')
+    //         .where({ id: this.id })
+    //         .update({ username })
+    //         .returning('*');
 
-        const updatedUser = rows[0];
-        return updatedUser ? new User(updatedUser) : null;
-    };
+    //     const updatedUser = rows[0];
+    //     return updatedUser ? new User(updatedUser) : null;
+    // };
 }
